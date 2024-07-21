@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
 from main import MainPage
+import mysql.connector
 
 class Login:
     def __init__(self, master):
