@@ -1,4 +1,6 @@
 from tkinter import *
+from tkinter import messagebox
+import mysql.connector
 
 class StuffPageADD:
     def __init__(self, master):
@@ -35,6 +37,32 @@ class StuffPageADD:
         self.idNumberEntry = Entry(self.master, textvariable=self.idNumber, **entry_style)
         self.idNumberEntry.grid(row=3, column=1, padx=10, pady=10)
         
-        self.submitButton = Button(self.master, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'))
+        self.submitButton = Button(self.master, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.insert_to_db)
         self.submitButton.grid(row=4, column=0, columnspan=2, pady=20)
+
+    def insert_to_db(self):
+        SName = self.username.get()
+        role = self.role.get()
+        SEmail = self.Email.get()
+        SID = self.idNumber.get()
+
+        if SName and role and SEmail and SID:
+            try:
+                db = mysql.connector.connect(
+                    host="localhost",
+                    user='root',
+                    password='',
+                    database="PDataBase"
+                )
+                cursor = db.cursor()
+                sql = "INSERT INTO add_stuff (SName, role, SEmail, SID) VALUES (%s, %s, %s, %s)"
+                cursor.execute(sql, (SName, role, SEmail, SID))
+                db.commit()
+                messagebox.showinfo("Registration Success", "User registered successfully.")
+                db.close()
+            except mysql.connector.Error as err:
+                messagebox.showerror("Database Error", f"Error: {err}")
+        else:
+            messagebox.showwarning("Input Error", "Please enter all fields.")
+
 
