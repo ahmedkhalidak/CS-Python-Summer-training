@@ -1,7 +1,7 @@
 from tkinter import *
 from Stuff import StuffPageADD
 from add_location_screen import LocationPageADD
-from add_subject_screen import SubjectADD
+from subject import SubjectADD
 # for functions (stuff / locations / subject)
 class MainPage:
     def __init__(self, master):
@@ -38,7 +38,7 @@ class MainPage:
         self.new_window(LocationPageADD)
         
     def open_subject(self):
-        self.new_window(StuffPageADD)
+        self.new_window(SubjectADD)
 
     def new_window(self, _class):
         new = Toplevel(self.master)
