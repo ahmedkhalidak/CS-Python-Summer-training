@@ -66,7 +66,7 @@ class SubjectADD:
                     host="localhost",
                     user='root',
                     password='',
-                    database="PDataBaseNew"
+                    database="PDataBaseV5"
                 )
                 cursor = db.cursor()
                 sql = "INSERT INTO Subject (Name, Code,Level, Department) VALUES (%s, %s, %s, %s)"
@@ -85,7 +85,7 @@ class SubjectADD:
             host="localhost",
             user='root',
             password='',
-            database="PDataBaseNew"
+            database="PDataBaseV5"
         )
         cursor = db.cursor()
         cursor.execute("SELECT * FROM Subject")
@@ -112,7 +112,7 @@ class SubjectADD:
             host="localhost",
             user='root',
             password='',
-            database="PDataBaseNew"
+            database="PDataBaseV5"
         )
         cursor = db.cursor()
         cursor.execute("DELETE FROM Subject WHERE Code = %s", (record_id ,))
