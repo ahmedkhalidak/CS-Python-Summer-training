@@ -30,7 +30,7 @@ class Login:
         UName = self.username.get()
         Pass = self.password.get()
         try:
-            db = mysql.connector.connect(host="localhost",user='root',password='',db="PDataBase")
+            db = mysql.connector.connect(host="localhost",user='root',password='',db="PDataBaseNew")
             cursor=db.cursor()
             sql = "SELECT * FROM Login WHERE UName=%s AND Pass=%s"
             cursor.execute(sql, (UName, Pass))
@@ -54,3 +54,5 @@ if __name__ == "__main__":
     root = Tk()
     app = Login(root)
     root.mainloop()
+    
+
