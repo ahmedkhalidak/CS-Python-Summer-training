@@ -31,11 +31,11 @@ class StuffPageADD:
         self.EmailEntry = Entry(self.master, textvariable=self.Email, **entry_style)
         self.EmailEntry.grid(row=2, column=1, padx=10, pady=10)
 
-        self.idLabel = Label(self.master, text="ID Number", **label_style)
-        self.idLabel.grid(row=3, column=0, padx=10, pady=10)
-        self.idNumber = IntVar()
-        self.idNumberEntry = Entry(self.master, textvariable=self.idNumber, **entry_style)
-        self.idNumberEntry.grid(row=3, column=1, padx=10, pady=10)
+        #self.idLabel = Label(self.master, text="ID Number", **label_style)
+        #self.idLabel.grid(row=3, column=0, padx=10, pady=10)
+        #self.idNumber = IntVar()
+        #self.idNumberEntry = Entry(self.master, textvariable=self.idNumber, **entry_style)
+        #self.idNumberEntry.grid(row=3, column=1, padx=10, pady=10)
         
         self.submitButton = Button(self.master, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.insert_to_db)
         self.submitButton.grid(row=4, column=0, columnspan=2, pady=20)
@@ -59,9 +59,9 @@ class StuffPageADD:
         SName = self.username.get()
         role = self.role.get()
         SEmail = self.Email.get()
-        SID = self.idNumber.get()
+       # SID = self.idNumber.get()
 
-        if SName and role and SEmail and SID:
+        if SName and role and SEmail :
             try:
                 db = mysql.connector.connect(
                     host="localhost",
@@ -70,8 +70,8 @@ class StuffPageADD:
                     database="PDataBaseNew"
                 )
                 cursor = db.cursor()
-                sql = "INSERT INTO add_stuff (SName, role, SEmail, SID) VALUES (%s, %s, %s, %s)"
-                cursor.execute(sql, (SName, role, SEmail, SID))
+                sql = "INSERT INTO add_stuff (SName, role, SEmail) VALUES (%s, %s, %s)"
+                cursor.execute(sql, (SName, role, SEmail))
                 db.commit()
                 messagebox.showinfo("Registration Success", "User registered successfully.")
                 db.close()
