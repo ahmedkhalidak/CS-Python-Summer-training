@@ -30,9 +30,9 @@ class Login:
         UName = self.username.get()
         Pass = self.password.get()
         try:
-            db = mysql.connector.connect(host="localhost",user='root',password='',db="PDataBaseNew")
+            db = mysql.connector.connect(host="localhost",user='root',password='',db="PDataBaseV5")
             cursor=db.cursor()
-            sql = "SELECT * FROM Login WHERE UName=%s AND Pass=%s"
+            sql = "SELECT * FROM login WHERE UName=%s AND Pass=%s"
             cursor.execute(sql, (UName, Pass))
             myresult = cursor.fetchall()
             if myresult:
