@@ -1,6 +1,6 @@
 from tkinter import *
 from Stuff import StuffPageADD
-from add_location_screen import LocationPageADD
+from location import LocationPageADD
 from subject import SubjectADD
 # for functions (stuff / locations / subject)
 class MainPage:
