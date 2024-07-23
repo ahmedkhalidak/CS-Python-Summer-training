@@ -1,12 +1,12 @@
 from tkinter import *
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 import mysql.connector
 
 class StuffPageADD:
     def __init__(self, master):
         self.master = master
         self.master.title('Stuff Form For Add')
-        self.master.geometry('400x250')
+        self.master.geometry('600x500')
         self.master.configure(bg='lightblue')
 
         label_style = {'bg': 'lightblue', 'fg': 'black', 'font': ('Arial', 12, 'bold')}
@@ -40,6 +40,21 @@ class StuffPageADD:
         self.submitButton = Button(self.master, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.insert_to_db)
         self.submitButton.grid(row=4, column=0, columnspan=2, pady=20)
 
+        self.loadButton = Button(self.master, text="Load Data", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.load_data)
+        self.loadButton.grid(row=5, column=0, columnspan=2, pady=10)
+
+        self.tree = ttk.Treeview(self.master, columns=('SID', 'SName', 'Role', 'SEmail'), show='headings')
+        self.tree.heading('SID', text='ID')
+        self.tree.heading('SName', text='Name')
+        self.tree.heading('Role', text='Role')
+        self.tree.heading('SEmail', text='Email')
+        self.tree.grid(row=6, column=0, columnspan=2, pady=20)
+
+        self.deleteButton = Button(self.master, text="Delete Record", bg='red', fg='white', font=('Arial', 12, 'bold'), command=self.delete_record)
+        self.deleteButton.grid(row=7, column=0, columnspan=2, pady=10)
+
+        self.load_data()
+
     def insert_to_db(self):
         SName = self.username.get()
         role = self.role.get()
@@ -52,7 +67,7 @@ class StuffPageADD:
                     host="localhost",
                     user='root',
                     password='',
-                    database="PDataBase"
+                    database="PDataBaseNew"
                 )
                 cursor = db.cursor()
                 sql = "INSERT INTO add_stuff (SName, role, SEmail, SID) VALUES (%s, %s, %s, %s)"
@@ -60,9 +75,49 @@ class StuffPageADD:
                 db.commit()
                 messagebox.showinfo("Registration Success", "User registered successfully.")
                 db.close()
+                self.load_data()
             except mysql.connector.Error as err:
                 messagebox.showerror("Database Error", f"Error: {err}")
         else:
             messagebox.showwarning("Input Error", "Please enter all fields.")
 
+    def fetch_data(self):
+        db = mysql.connector.connect(
+            host="localhost",
+            user='root',
+            password='',
+            database="PDataBaseNew"
+        )
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM add_stuff")
+        rows = cursor.fetchall()
+        db.close()
+        return rows
+
+    def load_data(self):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+        rows = self.fetch_data()
+        for row in rows:
+            self.tree.insert("", END, values=row)
+
+    def delete_record(self):
+        selected_item = self.tree.selection()[0]
+        print(selected_item)
+        print(self.tree.item(selected_item))
+        values = self.tree.item(selected_item, 'values')
+        record_id = values[3]
+        print(record_id)
+        print(selected_item)
+        db = mysql.connector.connect(
+            host="localhost",
+            user='root',
+            password='',
+            database="PDataBaseNew"
+        )
+        cursor = db.cursor()
+        cursor.execute("DELETE FROM add_stuff WHERE SID = %s", (record_id ,))
+        db.commit()
+        db.close()
+        self.load_data()
 
