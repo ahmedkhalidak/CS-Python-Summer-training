@@ -67,7 +67,7 @@ class StuffPageADD:
                     host="localhost",
                     user='root',
                     password='',
-                    database="PDataBaseNew"
+                    database="PDataBaseV5"
                 )
                 cursor = db.cursor()
                 sql = "INSERT INTO add_stuff (SName, role, SEmail) VALUES (%s, %s, %s)"
@@ -86,7 +86,7 @@ class StuffPageADD:
             host="localhost",
             user='root',
             password='',
-            database="PDataBaseNew"
+            database="PDataBaseV5"
         )
         cursor = db.cursor()
         cursor.execute("SELECT * FROM add_stuff")
@@ -113,7 +113,7 @@ class StuffPageADD:
             host="localhost",
             user='root',
             password='',
-            database="PDataBaseNew"
+            database="PDataBaseV5"
         )
         cursor = db.cursor()
         cursor.execute("DELETE FROM add_stuff WHERE SID = %s", (record_id ,))
