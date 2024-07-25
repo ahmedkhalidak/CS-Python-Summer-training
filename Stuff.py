@@ -1,97 +1,85 @@
 from tkinter import *
 from tkinter import messagebox, ttk
 import mysql.connector
+from mysql.connector import Error
 
 class StuffPageADD:
     def __init__(self, master):
         self.master = master
-        self.master.title('Stuff Form For Add')
+        self.master.title('Staff Form for Add')
         self.master.geometry('600x500')
         self.master.configure(bg='lightblue')
 
+        self.setup_widgets()
+        self.load_data()
+
+    def setup_widgets(self):
         label_style = {'bg': 'lightblue', 'fg': 'black', 'font': ('Arial', 12, 'bold')}
         entry_style = {'font': ('Arial', 12)}
 
-        self.usernameLabel = Label(self.master, text="Name", **label_style)
-        self.usernameLabel.grid(row=0, column=0, padx=10, pady=10)
-        self.username = StringVar()
-        self.usernameEntry = Entry(self.master, textvariable=self.username, **entry_style)
-        self.usernameEntry.grid(row=0, column=1, padx=10, pady=10)
+        # Name Entry
+        Label(self.master, text="Name", **label_style).grid(row=0, column=0, padx=10, pady=10)
+        self.name = StringVar()
+        Entry(self.master, textvariable=self.name, **entry_style).grid(row=0, column=1, padx=10, pady=10)
 
-        self.role = StringVar()
-        self.role.set("DR")
-        self.r1 = Radiobutton(self.master, text='Dr', variable=self.role, value="DR", bg='lightblue', font=('Arial', 12))
-        self.r1.grid(row=1, column=0, padx=10, pady=10, sticky=W)
-        self.r2 = Radiobutton(self.master, text='TA', variable=self.role, value="TA", bg='lightblue', font=('Arial', 12))
-        self.r2.grid(row=1, column=1, padx=10, pady=10, sticky=W)
-        
-        self.EmailLabel = Label(self.master, text="Email", **label_style)
-        self.EmailLabel.grid(row=2, column=0, padx=10, pady=10)
-        self.Email = StringVar()
-        self.EmailEntry = Entry(self.master, textvariable=self.Email, **entry_style)
-        self.EmailEntry.grid(row=2, column=1, padx=10, pady=10)
+        # Position Radiobuttons
+        self.position = StringVar()
+        self.position.set("DR")
+        Radiobutton(self.master, text='Dr', variable=self.position, value="DR", bg='lightblue', font=('Arial', 12)).grid(row=1, column=0, padx=10, pady=10)
+        Radiobutton(self.master, text='TA', variable=self.position, value="TA", bg='lightblue', font=('Arial', 12)).grid(row=1, column=1, padx=10, pady=10)
 
-        #self.idLabel = Label(self.master, text="ID Number", **label_style)
-        #self.idLabel.grid(row=3, column=0, padx=10, pady=10)
-        #self.idNumber = IntVar()
-        #self.idNumberEntry = Entry(self.master, textvariable=self.idNumber, **entry_style)
-        #self.idNumberEntry.grid(row=3, column=1, padx=10, pady=10)
-        
-        self.submitButton = Button(self.master, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.insert_to_db)
-        self.submitButton.grid(row=4, column=0, columnspan=2, pady=20)
+        # Email Entry
+        Label(self.master, text="Email", **label_style).grid(row=2, column=0, padx=10, pady=10)
+        self.email = StringVar()
+        Entry(self.master, textvariable=self.email, **entry_style).grid(row=2, column=1, padx=10, pady=10)
 
-        self.loadButton = Button(self.master, text="Load Data", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.load_data)
-        self.loadButton.grid(row=5, column=0, columnspan=2, pady=10)
+        # Submit Button
+        Button(self.master, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.insert_to_db).grid(row=3, column=0, columnspan=2, pady=20)
 
-        self.tree = ttk.Treeview(self.master, columns=('SID', 'SName', 'Role', 'SEmail'), show='headings')
-        self.tree.heading('SID', text='ID')
-        self.tree.heading('SName', text='Name')
-        self.tree.heading('Role', text='Role')
-        self.tree.heading('SEmail', text='Email')
-        self.tree.grid(row=6, column=0, columnspan=2, pady=20)
+        # Load Data Button
+        Button(self.master, text="Load Data", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.load_data).grid(row=4, column=0, columnspan=2, pady=10)
 
-        self.deleteButton = Button(self.master, text="Delete Record", bg='red', fg='white', font=('Arial', 12, 'bold'), command=self.delete_record)
-        self.deleteButton.grid(row=7, column=0, columnspan=2, pady=10)
+        # Treeview for Displaying Data
+        self.tree = ttk.Treeview(self.master, columns=('id', 'name', 'position', 'email'), show='headings')
+        for col in self.tree['columns']:
+            self.tree.heading(col, text=col)
+        self.tree.grid(row=5, column=0, columnspan=2, pady=20)
 
-        self.load_data()
+        # Delete Button
+        Button(self.master, text="Delete Record", bg='red', fg='white', font=('Arial', 12, 'bold'), command=self.delete_record).grid(row=6, column=0, columnspan=2, pady=10)
 
-    def insert_to_db(self):
-        SName = self.username.get()
-        role = self.role.get()
-        SEmail = self.Email.get()
-       # SID = self.idNumber.get()
-
-        if SName and role and SEmail :
-            try:
-                db = mysql.connector.connect(
-                    host="localhost",
-                    user='root',
-                    password='',
-                    database="PDataBaseV5"
-                )
-                cursor = db.cursor()
-                sql = "INSERT INTO add_stuff (SName, role, SEmail) VALUES (%s, %s, %s)"
-                cursor.execute(sql, (SName, role, SEmail))
-                db.commit()
-                messagebox.showinfo("Registration Success", "User registered successfully.")
-                db.close()
-                self.load_data()
-            except mysql.connector.Error as err:
-                messagebox.showerror("Database Error", f"Error: {err}")
-        else:
-            messagebox.showwarning("Input Error", "Please enter all fields.")
-
-    def fetch_data(self):
-        db = mysql.connector.connect(
+    def connect_db(self):
+        return mysql.connector.connect(
             host="localhost",
             user='root',
             password='',
             database="PDataBaseV5"
         )
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM add_stuff")
-        rows = cursor.fetchall()
-        db.close()
+
+    def insert_to_db(self):
+        name = self.name.get()
+        position = self.position.get()
+        email = self.email.get()
+
+        if name and position and email:
+            try:
+                with self.connect_db() as db:
+                    cursor = db.cursor()
+                    sql = "INSERT INTO staff_info (name, position, email) VALUES (%s, %s, %s)"
+                    cursor.execute(sql, (name, position, email))
+                    db.commit()
+                messagebox.showinfo("Registration Success", "User registered successfully.")
+                self.load_data()
+            except Error as err:
+                messagebox.showerror("Database Error", f"Error: {err}")
+        else:
+            messagebox.showwarning("Input Error", "Please enter all fields.")
+
+    def fetch_data(self):
+        with self.connect_db() as db:
+            cursor = db.cursor()
+            cursor.execute("SELECT id, name, position, email FROM staff_info")
+            rows = cursor.fetchall()
         return rows
 
     def load_data(self):
@@ -102,22 +90,18 @@ class StuffPageADD:
             self.tree.insert("", END, values=row)
 
     def delete_record(self):
-        selected_item = self.tree.selection()[0]
-        print(selected_item)
-        print(self.tree.item(selected_item))
-        values = self.tree.item(selected_item, 'values')
-        record_id = values[3]
-        print(record_id)
-        print(selected_item)
-        db = mysql.connector.connect(
-            host="localhost",
-            user='root',
-            password='',
-            database="PDataBaseV5"
-        )
-        cursor = db.cursor()
-        cursor.execute("DELETE FROM add_stuff WHERE SID = %s", (record_id ,))
-        db.commit()
-        db.close()
-        self.load_data()
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("No Selection", "Please select a record to delete")
+            return
 
+        record_id = self.tree.item(selected_item[0], 'values')[0]
+        try:
+            with self.connect_db() as db:
+                cursor = db.cursor()
+                cursor.execute("DELETE FROM staff_info WHERE id = %s", (record_id,))
+                db.commit()
+            self.tree.delete(selected_item[0])
+            messagebox.showinfo("Success", "Record deleted successfully.")
+        except Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
