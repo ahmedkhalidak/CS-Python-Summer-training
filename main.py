@@ -2,11 +2,12 @@ from tkinter import *
 from Stuff import StuffPageADD
 from location import LocationPageADD
 from subject import SubjectADD
+from load import LoadDel
 # for functions (stuff / locations / subject)
 class MainPage:
     def __init__(self, master):
         self.master = master
-        self.master.title('work on data Form')
+        self.master.title('new main')
         self.master.geometry('400x200')
         self.master.configure(bg='lightblue')
         
@@ -21,8 +22,9 @@ class MainPage:
         self.subjectButton = Button(self.master, text="subjectButton",**button_style,command=self.open_subject)
         self.subjectButton.grid(row=1, column=0, pady=10)
 
-        self.loudButton = Button(self.master, text="load",**button_style,command=self.open_subject)
+        self.loudButton = Button(self.master, text="load",**button_style,command=self.open_load )
         self.loudButton.grid(row=1, column=1, pady=10)
+
         
         self.creatTables = Button(self.master, text="creatTables",**button_style,command=self.open_subject)
         self.creatTables.grid(row=2, column=0, pady=10)
@@ -39,6 +41,10 @@ class MainPage:
         
     def open_subject(self):
         self.new_window(SubjectADD)
+
+
+    def open_load(self):
+        self.new_window(LoadDel)
 
     def new_window(self, _class):
         new = Toplevel(self.master)
