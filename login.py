@@ -27,22 +27,22 @@ class Login:
 
    
     def logintodb(self):
-        UName = self.username.get()
-        Pass = self.password.get()
-        try:
-            db = mysql.connector.connect(host="localhost",user='root',password='',db="PDataBaseV5")
-            cursor=db.cursor()
-            sql = "SELECT * FROM login WHERE UName=%s AND Pass=%s"
-            cursor.execute(sql, (UName, Pass))
-            myresult = cursor.fetchall()
-            if myresult:
-               # messagebox.showinfo("Login Success")
+        # UName = self.username.get()
+        # Pass = self.password.get()
+        # try:
+        #     db = mysql.connector.connect(host="localhost",user='root',password='',db="PDataBaseV5")
+        #     cursor=db.cursor()
+        #     sql = "SELECT * FROM login WHERE UName=%s AND Pass=%s"
+        #     cursor.execute(sql, (UName, Pass))
+        #     myresult = cursor.fetchall()
+        #     if myresult:
+        #        # messagebox.showinfo("Login Success")
                 self.open_main_page()
-            else:
-                messagebox.showerror("Login Failed")
-            db.close()
-        except mysql.connector.Error as err:
-            messagebox.showerror("Database Error", f"Error: {err}")
+        #     else:
+        #         messagebox.showerror("Login Failed")
+        #     db.close()
+        # except mysql.connector.Error as err:
+        #     messagebox.showerror("Database Error", f"Error: {err}")
             
 
     def open_main_page(self):
