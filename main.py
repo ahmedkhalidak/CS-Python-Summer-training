@@ -3,6 +3,8 @@ from Stuff import StuffPageADD
 from location import LocationPageADD
 from subject import SubjectADD
 from load import LoadDel
+from level import Level
+from Createtable import CreateTable
 # for functions (stuff / locations / subject)
 class MainPage:
     def __init__(self, master):
@@ -26,8 +28,12 @@ class MainPage:
         self.loudButton.grid(row=1, column=1, pady=10)
 
         
-        self.creatTables = Button(self.master, text="creatTables",**button_style,command=self.open_subject)
+        self.creatTables = Button(self.master, text="creatTables",**button_style,command=self.open_Table)
         self.creatTables.grid(row=2, column=0, pady=10)
+
+        
+        self.Level = Button(self.master, text="Level",**button_style,command=self.open_Level)
+        self.Level.grid(row=3, column=0, pady=10)
 
         
         self.ExitButton = Button(self.master, text="ExitButton",**button_style,command=self.close_window)
@@ -45,6 +51,12 @@ class MainPage:
 
     def open_load(self):
         self.new_window(LoadDel)
+
+    def open_Level(self):
+        self.new_window(Level)
+
+    def open_Table(self):
+        self.new_window(CreateTable)
 
     def new_window(self, _class):
         new = Toplevel(self.master)

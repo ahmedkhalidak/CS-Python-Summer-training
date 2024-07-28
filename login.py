@@ -1,10 +1,9 @@
 from tkinter import *
 from tkinter import messagebox
-import mysql.connector
 from main import MainPage
+import mysql.connector
 
 class Login:
-
     def __init__(self, master):
         self.master = master
         self.master.title('Login Form')
@@ -21,29 +20,32 @@ class Login:
         self.password = StringVar()
         self.passwordEntry = Entry(self.master, textvariable=self.password, show='*')
         self.passwordEntry.grid(row=1, column=1, padx=10, pady=10)
-        
+
         self.loginButton = Button(self.master, text="Login", command=self.logintodb)
         self.loginButton.grid(row=2, column=1, pady=10)
 
-   
     def logintodb(self):
-        # UName = self.username.get()
-        # Pass = self.password.get()
-        # try:
-        #     db = mysql.connector.connect(host="localhost",user='root',password='',db="PDataBaseV5")
-        #     cursor=db.cursor()
-        #     sql = "SELECT * FROM login WHERE UName=%s AND Pass=%s"
-        #     cursor.execute(sql, (UName, Pass))
-        #     myresult = cursor.fetchall()
-        #     if myresult:
-        #        # messagebox.showinfo("Login Success")
-                self.open_main_page()
-        #     else:
-        #         messagebox.showerror("Login Failed")
-        #     db.close()
-        # except mysql.connector.Error as err:
-        #     messagebox.showerror("Database Error", f"Error: {err}")
-            
+        UName = self.username.get()
+        Pass = self.password.get()
+        try:
+            db = mysql.connector.connect(
+                host="localhost",
+                user='root',
+                password='',
+                database="PDataBaseV5"
+            )
+            cursor = db.cursor()
+            sql = "SELECT * FROM login WHERE UName=%s AND Pass=%s"
+            cursor.execute(sql, (UName, Pass))
+            myresult = cursor.fetchall()
+            if myresult:
+                # messagebox.showinfo("Login Success")
+                 self.open_main_page()
+            else:
+                messagebox.showerror("Login Failed", "Invalid username or password.")
+            db.close()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
 
     def open_main_page(self):
         self.master.destroy()
@@ -54,5 +56,3 @@ if __name__ == "__main__":
     root = Tk()
     app = Login(root)
     root.mainloop()
-    
-

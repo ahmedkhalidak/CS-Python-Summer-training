@@ -66,7 +66,7 @@ class LoadDel:
         self.deleteButton.grid(row=9, column=0, columnspan=2, pady=10)
 
         self.load_data()
-        self.update_names()  # تحديث الأسماء عند بدء البرنامج
+        self.update_names()  
 
     def insert_to_db(self):
         position = self.position.get()
@@ -148,7 +148,7 @@ class LoadDel:
 
         self.stuffnameEntry['values'] = [name[0] for name in names]
         if names:
-            self.stuffname.set(names[0][0])  # تعيين القيمة الافتراضية لأول اسم في القائمة
+            self.stuffname.set(names[0][0])  
 
 
 
