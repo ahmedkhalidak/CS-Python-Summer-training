@@ -274,14 +274,14 @@ class CreateTable:
         try:
             day = self.day.get()
             start_time = self.startTime.get()
-            sections_from = self.sectionsFrom.get() - 1  # تصحيح: تصحيح المؤشر ليبدأ من 0
+            sections_from = self.sectionsFrom.get() - 1 
             sections_to = self.sectionsTo.get()
             subject = self.subject.get()
-            instructor = self.instructor_listbox.get(self.instructor_listbox.curselection())[1]  # الحصول على اسم المدرب
+            instructor = self.instructor_listbox.get(self.instructor_listbox.curselection())[1]  
             location = self.location.get()
             subject_type = self.type.get()
 
-            # تحديد العمود للوقت المحدد
+            
             start_col = None
             for i, slot in enumerate(self.time_slots):
                 if slot.startswith(f"{start_time}:00"):
@@ -291,14 +291,13 @@ class CreateTable:
             if start_col is None:
                 raise ValueError("Invalid start time")
 
-            # تحديد العمود النهائي (بعد أربع أعمدة)
-            end_col = start_col + 4  # كل محاضرة/مختبر تدوم ساعتين أي أربع أعمدة
-
-            # العثور على الصف الذي يطابق اليوم المحدد
+           
+            end_col = start_col + 4 
+            
             day_index = self.days.index(day)
             day_row_start = 2 + (day_index * (self.levels.get(self.level.get(), {}).get('sections', 0) + 1))
 
-            # دمج الخلايا لعرض المادة
+                
             cell_content = f"{subject}\n{subject_type}\n{instructor}\n{location}"
             label = Label(self.table_frame, text=cell_content,
                         font=('Arial', 12, 'bold'), borderwidth=0, relief="flat",
@@ -306,7 +305,7 @@ class CreateTable:
             label.grid(row=day_row_start + sections_from, column=start_col, 
                     columnspan=4, rowspan=sections_to - sections_from, sticky="nsew")
 
-            # تحديث وزن الصفوف والأعمدة
+               
             for col in range(start_col, end_col):
                 self.table_frame.grid_columnconfigure(col, weight=1)
             for row in range(day_row_start + sections_from, day_row_start + sections_to):
