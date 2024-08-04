@@ -2,93 +2,174 @@ from tkinter import *
 from tkinter import messagebox, ttk
 import mysql.connector
 
-class LoadDel:
+class Load:
     def __init__(self, root):
         self.root = root
-        self.root.title("Load and Delete")
-        self.root.geometry('400x600')
+        self.root.title("Load")
+        self.root.geometry('400x400')
         self.root.configure(bg='lightblue')
 
-        label_style = {'bg': 'lightblue', 'fg': 'black', 'font': ('Arial', 12, 'bold')}
-        entry_style = {'font': ('Arial', 12)}
+        # Fetch data from instructor table
+        self.instructor_dict = {}
+        self.departments = self.fetch_departments()
+        self.department_dict = {name: dept_id for dept_id, name in self.departments}
+        self.levels_dic = {}
 
-        self.position = StringVar()
-        self.position.set("DR")
-        self.position.trace("w", self.update_names)  # إضافة تتبع للتغيير في قيمة position
+        self.roleLabel = Label(root, text="Role:", bg='lightblue', font=('Arial', 12, 'bold'))
+        self.roleLabel.grid(row=1, column=0)
+        self.roleVar = StringVar()
+        self.roleEntry = ttk.Combobox(root, textvariable=self.roleVar)
+        self.roleEntry['values'] = ["Dr", "TA"]
+        self.roleEntry.grid(row=1, column=1, padx=10, pady=10)
+        self.roleEntry.bind("<<ComboboxSelected>>", self.fetch_instructors)
 
-        self.r1 = Radiobutton(root, text='Dr', variable=self.position, value="DR", **label_style)
-        self.r1.grid(row=0, column=0, padx=10, pady=10)
-        self.r2 = Radiobutton(root, text='TA', variable=self.position, value="TA", **label_style)
-        self.r2.grid(row=0, column=1, padx=10, pady=10)
-
-        self.stuffnameLabel = Label(root, text="Name:", **label_style)
-        self.stuffnameLabel.grid(row=1, column=0)
-        self.stuffname = StringVar()
-        self.stuffnameEntry = ttk.Combobox(root, textvariable=self.stuffname, **entry_style)
-        self.stuffnameEntry.grid(row=1, column=1, padx=10, pady=10)
-
-        self.departmentLabel = Label(root, text="Department:", **label_style)
-        self.departmentLabel.grid(row=2, column=0)
+        self.instructortidLabel = Label(root, text="Instructor:", bg='lightblue', font=('Arial', 12, 'bold'))
+        self.instructortidLabel.grid(row=2, column=0)
+        self.instructortidVar = StringVar()
+        self.instructortidEntry = ttk.Combobox(root, textvariable=self.instructortidVar)
+        self.instructortidEntry['values'] = [name for name in self.instructor_dict.keys()]
+        self.instructortidEntry.grid(row=2, column=1, padx=10, pady=10)
+        
+        self.departmentLabel = Label(self.root, text="Department:" , bg='lightblue', font=('Arial', 12, 'bold'))
+        self.departmentLabel.grid(row=3, column=0, padx=10, pady=10, sticky=W)
         self.department = StringVar()
-        self.departmentEntry = Entry(root, textvariable=self.department, **entry_style)
-        self.departmentEntry.grid(row=2, column=1, padx=10, pady=10)
+        self.departmentEntry = ttk.Combobox(self.root, textvariable=self.department)
+        self.departmentEntry['values'] = [name for name in self.department_dict.keys()]
+        self.departmentEntry.grid(row=3, column=1, padx=10, pady=10, sticky=W)
+        self.departmentEntry.bind("<<ComboboxSelected>>", self.load_levels)
 
-        self.levelLabel = Label(root, text="Level:", **label_style)
-        self.levelLabel.grid(row=3, column=0)
+        self.levelLabel = Label(self.root, text="Level:", bg='lightblue', font=('Arial', 12, 'bold'))
+        self.levelLabel.grid(row=4, column=0, padx=10, pady=10, sticky=W)
         self.level = IntVar()
-        self.levelEntry = ttk.Combobox(root, values=[1, 2, 3, 4], textvariable=self.level, **entry_style)
-        self.levelEntry.grid(row=3, column=1, padx=10, pady=10)
+        self.levelEntry = ttk.Combobox(self.root, textvariable=self.level) 
+        self.levelEntry.grid(row=4, column=1, padx=10, pady=10, sticky=W)
+        self.levelEntry.bind("<<ComboboxSelected>>", self.fetch_subjects)
+        # Fetch data from subject table
+        self.subject_dict = {}
 
-        self.subjectLabel = Label(root, text="Subject:", **label_style)
-        self.subjectLabel.grid(row=4, column=0)
-        self.subject = StringVar()
-        self.subjectEntry = Entry(root, textvariable=self.subject, **entry_style)
-        self.subjectEntry.grid(row=4, column=1, padx=10, pady=10)
+        self.subjectLabel = Label(root, text="Subject:", bg='lightblue', font=('Arial', 12, 'bold'))
+        self.subjectLabel.grid(row=5, column=0)
+        self.subjectVar = StringVar()
+        self.subjectEntry = ttk.Combobox(root, textvariable=self.subjectVar)
+        self.subjectEntry.grid(row=5, column=1, padx=10, pady=10)
 
-        self.sectionsLabel = Label(root, text="Sections:", **label_style)
-        self.sectionsLabel.grid(row=5, column=0)
-        self.sections = IntVar()
-        self.sectionsEntry = Entry(root, textvariable=self.sections, **entry_style)
-        self.sectionsEntry.grid(row=5, column=1, padx=10, pady=10)
+        self.sectionsLabel = Label(root, text="Number of Sections:", bg='lightblue', font=('Arial', 12, 'bold'))
+        self.sectionsLabel.grid(row=6, column=0)
+        self.sectionsVar = IntVar()
+        self.sectionsEntry = Entry(root, textvariable=self.sectionsVar)
+        self.sectionsEntry.grid(row=6, column=1, padx=10, pady=10)
 
         self.submitButton = Button(self.root, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.insert_to_db)
-        self.submitButton.grid(row=6, column=0, columnspan=2, pady=20)
+        self.submitButton.grid(row=7, column=0, columnspan=2, pady=20)
 
         self.loadButton = Button(self.root, text="Load Data", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.load_data)
-        self.loadButton.grid(row=7, column=0, columnspan=2, pady=10)
+        self.loadButton.grid(row=8, column=0, columnspan=2, pady=10)
 
-        self.tree = ttk.Treeview(self.root, columns=('position', 'name', 'sections', 'Level', 'subject', 'Department', 'id'), show='headings')
-        for col in ('position', 'name', 'sections', 'Level', 'subject', 'Department', 'id'):
+        self.tree = ttk.Treeview(self.root, columns=( 'instructortid', 'subject', 'sections'), show='headings')
+        for col in ( 'instructortid', 'subject', 'sections'):
             self.tree.heading(col, text=col)
-        self.tree.grid(row=8, column=0, columnspan=2, pady=20)
+        self.tree.grid(row=9, column=0, columnspan=2, pady=20)
 
-        self.deleteButton = Button(self.root, text="Delete Record", bg='red', fg='white', font=('Arial', 12, 'bold'), command=self.delete_record)
-        self.deleteButton.grid(row=9, column=0, columnspan=2, pady=10)
+    def fetch_instructors(self,event):
+        self.instructor_dict.clear()
+        try:
+            db = mysql.connector.connect(
+                host="localhost",
+                user='root',
+                password='',
+                database="PDataBaseV8"
+            )
+            role = self.roleVar.get()
+            cursor = db.cursor()
+            sql = "SELECT ID, Name FROM instructor where Role = %s" 
+            cursor.execute(sql , (role, ))
+            rows = cursor.fetchall()
+            self.instructor_dict = {name: instructor_id for instructor_id, name in rows}
+            self.instructortidEntry['values'] = [name for name in self.instructor_dict.keys()]
+            db.close()
+            return rows
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
+            return []
 
-        self.load_data()
-        self.update_names()  
+    def fetch_departments(self):
+        try:
+            db = mysql.connector.connect(
+                host="localhost",
+                user='root',
+                password='',
+                database="PDataBaseV8"
+            )
+            cursor = db.cursor()
+            cursor.execute("SELECT ID, Name FROM department")
+            rows = cursor.fetchall()
+            db.close()
+            return rows
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
+            return []
+        
+    def load_levels(self,event):
+        self.levels_dic.clear()
+        try:
+            connection = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                password='',
+                database='PDataBasev8'
+            )
+            cursor = connection.cursor()
+            # Load levels and sections
+            dept_id=self.department_dict[self.department.get()]
+            dept_id=str(dept_id)
+            query_levels = "SELECT ID,  levelNo, No_sections FROM level WHERE Dept_ID = " + dept_id
+            cursor.execute(query_levels)
+            data = cursor.fetchall()
+            self.levels_dic = {levelNo: [ID, No_sections] for ID,levelNo,No_sections in data}
+            self.levelEntry['values'] = [levelNo for levelNo in self.levels_dic.keys()]
+            cursor.close()
+            connection.close()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
+
+    def fetch_subjects(self, event):
+        try:
+            db = mysql.connector.connect(
+                host="localhost",
+                user='root',
+                password='',
+                database="PDataBaseV8"
+            )
+            cursor = db.cursor()
+            id = self.level.get()
+            cursor.execute("SELECT ID, Name FROM subject where level_ID = %s", (id,))
+            rows = cursor.fetchall()
+            self.subject_dict = {Name: ID for ID,Name in rows}
+            self.subjectEntry['values'] = [Name for Name in self.subject_dict.keys()]
+            db.close()
+            return rows
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
+            return []
 
     def insert_to_db(self):
-        position = self.position.get()
-        name = self.stuffname.get()
-        sections = self.sections.get()
-        Level = self.level.get()
-        subject = self.subject.get()
-        Department = self.department.get()
+        instr_id = self.instructor_dict[self.instructortidVar.get()]
+        subj_id = self.subject_dict[self.subjectVar.get()]
+        No_sections = self.sectionsVar.get()
 
-        if position and name and sections and Level and subject and Department:
+        if instr_id and subj_id and No_sections:
             try:
                 db = mysql.connector.connect(
                     host="localhost",
                     user='root',
                     password='',
-                    database="PDataBaseV5"
+                    database="PDataBaseV8"
                 )
                 cursor = db.cursor()
-                sql = "INSERT INTO staff_info (position, name, sections, level, subject, department) VALUES (%s, %s, %s, %s, %s, %s)"
-                cursor.execute(sql, (position, name, sections, Level, subject, Department))
+                sql = "INSERT INTO instructorload (instructor_ID, subject_ID, No_sections) VALUES (%s, %s, %s)"
+                cursor.execute(sql, (instr_id, subj_id, No_sections))
                 db.commit()
-                messagebox.showinfo("Success", "Data inserted successfully.")
+                messagebox.showinfo("Success", "Record inserted successfully.")
                 db.close()
                 self.load_data()
             except mysql.connector.Error as err:
@@ -101,10 +182,10 @@ class LoadDel:
             host="localhost",
             user='root',
             password='',
-            database="PDataBaseV5"
+            database="PDataBaseV8"
         )
         cursor = db.cursor()
-        cursor.execute("SELECT position, name, sections, level, subject, department, id FROM staff_info")
+        cursor.execute("SELECT * FROM instructorload")
         rows = cursor.fetchall()
         db.close()
         return rows
@@ -116,41 +197,7 @@ class LoadDel:
         for row in rows:
             self.tree.insert("", END, values=row)
 
-    def delete_record(self):
-        selected_item = self.tree.selection()[0]
-        values = self.tree.item(selected_item, 'values')
-        #جوا الفاليو ترتيب العمود اللي فيه الاي دي في الواجهة
-        record_id = values[6]
-        db = mysql.connector.connect(
-            host="localhost",
-            user='root',
-            password='',
-            database="PDataBaseV5"
-        )
-        cursor = db.cursor()
-        cursor.execute("DELETE FROM staff_info WHERE id = %s", (record_id,))
-        db.commit()
-        db.close()
-        self.load_data()
-
-    def update_names(self, *args):
-        position = self.position.get()
-        db = mysql.connector.connect(
-            host="localhost",
-            user='root',
-            password='',
-            database="PDataBaseV5"
-        )
-        cursor = db.cursor()
-        cursor.execute("SELECT name FROM staff_info WHERE position = %s", (position,))
-        names = cursor.fetchall()
-        db.close()
-
-        self.stuffnameEntry['values'] = [name[0] for name in names]
-        if names:
-            self.stuffname.set(names[0][0])  
-
-
-
-
-
+if __name__ == "__main__":
+    root = Tk()
+    app = Load(root)
+    root.mainloop()

@@ -6,7 +6,7 @@ class LocationPageADD:
     def __init__(self, master):
         self.master = master
         self.master.title('Location Form')
-        self.master.geometry('400x500')
+        self.master.geometry('400x600')
         self.master.configure(bg='lightblue')
         
         label_style = {'bg': 'lightblue', 'fg': 'black', 'font': ('Arial', 12, 'bold')}
@@ -49,12 +49,10 @@ class LocationPageADD:
         self.loadButton = Button(self.master, text="Load Data", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.load_data)
         self.loadButton.grid(row=5, column=0, columnspan=2, pady=10)
 
-        self.tree = ttk.Treeview(self.master, columns=('ID', 'Type', 'Number', 'Capacity', 'Building'), show='headings')
+        self.tree = ttk.Treeview(self.master, columns=('ID', 'capacity', 'name'), show='headings')
         self.tree.heading('ID', text='ID')
-        self.tree.heading('Type', text='Type')
-        self.tree.heading('Number', text='Number')
-        self.tree.heading('Capacity', text='Capacity')
-        self.tree.heading('Building', text='Building')
+        self.tree.heading('capacity', text='Capacity')
+        self.tree.heading('name', text='name')
 
         self.tree.grid(row=6, column=0, columnspan=2, pady=20)
 
@@ -68,18 +66,19 @@ class LocationPageADD:
         Capacity = self.capacity.get()
         Building = self.buildingListbox.get(ACTIVE)
         Number = self.HNum.get()
-
+    
         if Type and Capacity and Building and Number:
+            name = Type + ' ' + Number + Building
             try:
                 db = mysql.connector.connect(
                     host="localhost",
                     user='root',
                     password='',
-                    database="PDataBaseV5"
+                    database="PDataBasev8"
                 )
                 cursor = db.cursor()
-                sql = "INSERT INTO location (type, capacity, building, number) VALUES (%s, %s, %s, %s)"
-                cursor.execute(sql, (Type, Capacity, Building, Number))
+                sql = "INSERT INTO location (name, capacity) VALUES (%s, %s)"
+                cursor.execute(sql, (name, Capacity))
                 db.commit()
                 messagebox.showinfo("Registration Success", "Location registered successfully.")
                 db.close()
@@ -94,10 +93,10 @@ class LocationPageADD:
             host="localhost",
             user='root',
             password='',
-            database="PDataBaseV5"
+            database="PDataBasev8"
         )
         cursor = db.cursor()
-        cursor.execute("SELECT * FROM location")
+        cursor.execute("SELECT `ID`, `capacity`,  `name` FROM location ")
         rows = cursor.fetchall()
         db.close()
         return rows
@@ -117,7 +116,7 @@ class LocationPageADD:
             host="localhost",
             user='root',
             password='',
-            database="PDataBaseV5"
+            database="PDataBasev8"
         )
         cursor = db.cursor()
         cursor.execute("DELETE FROM location WHERE ID = %s", (record_id,))
@@ -125,3 +124,7 @@ class LocationPageADD:
         db.close()
         self.load_data()  
 
+if __name__ == "__main__":
+    root = Tk()
+    app = LocationPageADD(root)
+    root.mainloop()
