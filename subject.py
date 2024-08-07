@@ -159,21 +159,44 @@ class Subject:
             self.tree.insert("", END, values=row)
 
     def delete_record(self):
-        selected_item = self.tree.selection()[0]
+        selected_items = self.tree.selection()
+        if not selected_items:
+            messagebox.showwarning("Selection Error", "Please select a record to delete.")
+            return
+
+        selected_item = selected_items[0]
         values = self.tree.item(selected_item, 'values')
         record_id = values[0]  # Assuming the ID is the first column
 
-        db = mysql.connector.connect(
-            host="localhost",
-            user='root',
-            password='',
-            database="PDataBasev8"
-        )
-        cursor = db.cursor()
-        cursor.execute("DELETE FROM Subject WHERE id = %s", (record_id,))
-        db.commit()
-        db.close()
-        self.load_data()
+        if not record_id:
+            messagebox.showwarning("Selection Error", "Failed to get record ID. Please try again.")
+            return
+
+        try:
+            db = mysql.connector.connect(
+                host="localhost",
+                user='root',
+                password='',
+                database="PDataBasev8"
+            )
+            cursor = db.cursor()
+            
+            # Delete the referencing rows in the InstructorLoad table first
+            cursor.execute("DELETE FROM InstructorLoad WHERE subject_ID = %s", (record_id,))
+            
+            # Now delete the row in the Subject table
+            cursor.execute("DELETE FROM Subject WHERE ID = %s", (record_id,))
+            
+            db.commit()
+            db.close()
+
+            # Remove the item from the Treeview
+            self.tree.delete(selected_item)
+
+            messagebox.showinfo("Success", "Record deleted successfully.")
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
+
 
 if __name__ == "__main__":
     root = Tk()

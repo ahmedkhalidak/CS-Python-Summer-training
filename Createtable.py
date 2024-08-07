@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import messagebox, ttk
 import mysql.connector
+from locationTable import LocationTable
+from instructorTable import InstructorTable
 
 class CreateTable:
     def __init__(self, root):
@@ -50,54 +52,59 @@ class CreateTable:
         self.subject = StringVar()
         self.subjectEntry = ttk.Combobox(self.input_frame, textvariable=self.subject)
         self.subjectEntry.grid(row=3, column=1, padx=5, pady=5, sticky=W)
+        self.subjectEntry.bind("<<ComboboxSelected>>", self.load_levels)
 
         self.typeLabel = Label(self.input_frame, text="Type:", **label_style)
         self.typeLabel.grid(row=4, column=0, padx=5, pady=5, sticky=W)
         self.type = StringVar()
         self.typeEntry = ttk.Combobox(self.input_frame, textvariable=self.type)
         self.typeEntry['values'] = ["Lecture", "Lab"]
-        self.typeEntry.grid(row=4, column=1, padx=10, pady=10, sticky=W)
+        self.typeEntry.grid(row=4, column=1, padx=5, pady=5, sticky=W)
 
         self.dayLabel = Label(self.input_frame, text="Day:", **label_style)
-        self.dayLabel.grid(row=5, column=0, padx=10, pady=10, sticky=W)
+        self.dayLabel.grid(row=5, column=0, padx=5, pady=5, sticky=W)
         self.day = StringVar()
         self.dayEntry = ttk.Combobox(self.input_frame, textvariable=self.day)
         self.dayEntry['values'] = self.days
-        self.dayEntry.grid(row=5, column=1, padx=10, pady=10, sticky=W)
+        self.dayEntry.grid(row=5, column=1, padx=5, pady=5, sticky=W)
 
         self.startTimeLabel = Label(self.input_frame, text="Start Time (hour):", **label_style)
-        self.startTimeLabel.grid(row=6, column=0, padx=10, pady=10, sticky=W)
+        self.startTimeLabel.grid(row=6, column=0, padx=5, pady=5 , sticky=W)
         self.startTime = IntVar()
         self.startTimeEntry = Entry(self.input_frame, textvariable=self.startTime)
-        self.startTimeEntry.grid(row=6, column=1, padx=10, pady=10, sticky=W)
+        self.startTimeEntry.grid(row=6, column=1, padx=5, pady=5, sticky=W)
 
         self.sectionsFromLabel = Label(self.input_frame, text="From Section:", **label_style)
-        self.sectionsFromLabel.grid(row=7, column=0, padx=10, pady=10, sticky=W)
+        self.sectionsFromLabel.grid(row=7, column=0, padx=5, pady=5, sticky=W)
         self.sectionsFrom = IntVar()
         self.sectionsFromEntry = Entry(self.input_frame, textvariable=self.sectionsFrom)
-        self.sectionsFromEntry.grid(row=7, column=1, padx=10, pady=10, sticky=W)
+        self.sectionsFromEntry.grid(row=7, column=1, padx=5, pady=5, sticky=W)
 
         self.sectionsToLabel = Label(self.input_frame, text="To Section:", **label_style)
-        self.sectionsToLabel.grid(row=8, column=0, padx=10, pady=10, sticky=W)
+        self.sectionsToLabel.grid(row=8, column=0, padx=5, pady=5, sticky=W)
         self.sectionsTo = IntVar()
         self.sectionsToEntry = Entry(self.input_frame, textvariable=self.sectionsTo)
-        self.sectionsToEntry.grid(row=8, column=1, padx=10, pady=10, sticky=W)
+        self.sectionsToEntry.grid(row=8, column=1, padx=5, pady=5, sticky=W)
 
         self.instructorLabel = Label(self.input_frame, text="Instructor:", **label_style)
-        self.instructorLabel.grid(row=9, column=0, padx=10, pady=10, sticky=W)
+        self.instructorLabel.grid(row=9, column=0, padx=5, pady=5, sticky=W)
         self.instructor_listbox = Listbox(self.input_frame, selectmode=SINGLE, exportselection=0)
-        self.instructor_listbox.grid(row=9, column=1, padx=10, pady=10, sticky=W)
+        self.instructor_listbox.grid(row=9, column=1, padx=5, pady=5, sticky=W)
         self.load_instructors()
 
         self.locationLabel = Label(self.input_frame, text="Location:", **label_style)
-        self.locationLabel.grid(row=10, column=0, padx=10, pady=10, sticky=W)
+        self.locationLabel.grid(row=10, column=0, padx=5, pady=5, sticky=W)
         self.location = StringVar()
         self.locationEntry = ttk.Combobox(self.input_frame, textvariable=self.location)
-        self.locationEntry.grid(row=10, column=1, padx=10, pady=10, sticky=W)
+        self.locationEntry.grid(row=10, column=1, padx=5, pady=5, sticky=W)
 
         self.addSubjectButton = Button(self.input_frame, text="Add Subject", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.add_subject_to_table)
         self.addSubjectButton.grid(row=11, column=0, columnspan=2, pady=20)
+        self.instructorPageButton = Button(self.input_frame, text="Instructor Page", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.open_instructor_page)
+        self.instructorPageButton.grid(row=12, column=0, columnspan=2, pady=10)
 
+        self.locationPageButton = Button(self.input_frame, text="Location Page", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.open_location_page)
+        self.locationPageButton.grid(row=12, column=1, columnspan=2, pady=10)
         self.table_frame_outer = Frame(self.root)
         self.table_frame_outer.grid(row=0, column=0, sticky="nsew")
 
@@ -121,6 +128,9 @@ class CreateTable:
         self.root.grid_columnconfigure(1, weight=1)
 
         self.load_locations()
+
+
+    
 
     def fetch_departments(self):
         try:
@@ -155,7 +165,7 @@ class CreateTable:
             levels = cursor.fetchall()
             self.levels = {level_no: {'id': level_id, 'sections': no_sections} for level_id, level_no, no_sections in levels}
             self.levelEntry['values'] = list(self.levels.keys())
-            self.levelEntry.set('')  # Clear the current selection
+            #self.levelEntry.set('')  # Clear the current selection
             cursor.close()
             connection.close()
         except mysql.connector.Error as err:
@@ -274,30 +284,70 @@ class CreateTable:
         try:
             day = self.day.get()
             start_time = self.startTime.get()
-            sections_from = self.sectionsFrom.get() - 1 
+            sections_from = self.sectionsFrom.get() - 1
             sections_to = self.sectionsTo.get()
             subject = self.subject.get()
-            instructor = self.instructor_listbox.get(self.instructor_listbox.curselection())[1]  
+            instructor = self.instructor_listbox.get(self.instructor_listbox.curselection())[1]
             location = self.location.get()
             subject_type = self.type.get()
 
-            
+            # Function to validate and insert data into the database
+            def validation():
+                try:
+                    db = mysql.connector.connect(
+                        host="localhost",
+                        user='root',
+                        password='',
+                        database="PDataBaseV8"
+                    )
+                    mycursor = db.cursor()
+
+                    # Retrieve all data from the table
+                    mycursor.execute("SELECT * FROM schedule")
+                    myresult = mycursor.fetchall()
+
+                    # Check for existing records with the same details
+                    for x in myresult:
+                        if (x[3] == subject and x[5] == instructor and 
+                            x[7] == location and x[8] == day and 
+                            x[10] == start_time):
+                            messagebox.showerror("Error", "Record already exists with the same details.")
+                            db.close()
+                            return
+
+                    # Insert the new record
+                    sql = """
+                    INSERT INTO schedule (sub_name, doc_name, loc_name, Day, time_start) 
+                    VALUES (%s, %s, %s, %s, %s)
+                    """
+                    mycursor.execute(sql, (subject, instructor, location, day, start_time))
+                    db.commit()
+                    messagebox.showinfo("Success", "Record inserted successfully.")
+                    
+                except mysql.connector.Error as err:
+                    messagebox.showerror("Database Error", f"Error: {err}")
+                except Exception as e:
+                    messagebox.showerror("Error", f"An error occurred: {e}")
+                finally:
+                    # Ensure the database connection is always closed
+                    if db.is_connected():
+                        db.close()
+
+            validation()
+
+            # GUI code to update the table (unchanged)
             start_col = None
             for i, slot in enumerate(self.time_slots):
                 if slot.startswith(f"{start_time}:00"):
                     start_col = i + 2
                     break
-
             if start_col is None:
                 raise ValueError("Invalid start time")
 
-           
-            end_col = start_col + 4 
-            
+            end_col = start_col + 4
             day_index = self.days.index(day)
             day_row_start = 2 + (day_index * (self.levels.get(self.level.get(), {}).get('sections', 0) + 1))
 
-                
             cell_content = f"{subject}\n{subject_type}\n{instructor}\n{location}"
             label = Label(self.table_frame, text=cell_content,
                         font=('Arial', 12, 'bold'), borderwidth=0, relief="flat",
@@ -305,18 +355,22 @@ class CreateTable:
             label.grid(row=day_row_start + sections_from, column=start_col, 
                     columnspan=4, rowspan=sections_to - sections_from, sticky="nsew")
 
-               
             for col in range(start_col, end_col):
                 self.table_frame.grid_columnconfigure(col, weight=1)
             for row in range(day_row_start + sections_from, day_row_start + sections_to):
                 self.table_frame.grid_rowconfigure(row, weight=1)
 
             messagebox.showinfo("Success", "Subject added to the table successfully!")
+
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
+    def open_instructor_page(self):
+        new_window = Toplevel(self.root)
+        InstructorTable(new_window)
 
-
-
+    def open_location_page(self):
+        new_window = Toplevel(self.root)
+        LocationTable(new_window)
 if __name__ == "__main__":
     root = Tk()
     app = CreateTable(root)

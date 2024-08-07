@@ -1,6 +1,6 @@
 from tkinter import *
 from department import department
-from level import level
+from level import Level
 from instructor import Instructor
 from subject import Subject
 from load import Load
@@ -53,7 +53,7 @@ class MainPage:
         self.new_window(Subject)
 
     def open_level(self):
-        self.new_window(level)
+        self.new_window(Level)
 
     def open_load(self):
         self.new_window(Load)

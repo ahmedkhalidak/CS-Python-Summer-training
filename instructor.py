@@ -24,8 +24,8 @@ class Instructor:
 
         # Position Radiobuttons
         self.position = StringVar()
-        self.position.set("DR")
-        Radiobutton(self.master, text='Dr', variable=self.position, value="DR", bg='lightblue', font=('Arial', 12)).grid(row=1, column=0, padx=10, pady=10)
+        self.position.set("Dr")
+        Radiobutton(self.master, text='Dr', variable=self.position, value="Dr", bg='lightblue', font=('Arial', 12)).grid(row=1, column=0, padx=10, pady=10)
         Radiobutton(self.master, text='TA', variable=self.position, value="TA", bg='lightblue', font=('Arial', 12)).grid(row=1, column=1, padx=10, pady=10)
 
         # Submit Button

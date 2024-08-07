@@ -1,7 +1,6 @@
 from tkinter import *
 from tkinter import messagebox, ttk
 import mysql.connector
-
 class LocationPageADD:
     def __init__(self, master):
         self.master = master
