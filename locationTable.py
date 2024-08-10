@@ -7,7 +7,7 @@ class LocationTable:
     def __init__(self, master):
         self.master = master
         self.master.title('Location Schedule')
-        self.master.geometry('700x600')  # تقليل العرض إلى حجم أصغر
+        self.master.geometry('700x600')
         self.master.configure(bg='lightblue')
 
         self.days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]
@@ -31,36 +31,27 @@ class LocationTable:
 
         self.day = StringVar()
         self.dayEntry = ttk.Combobox(self.input_frame, textvariable=self.day)
-        self.dayEntry['values'] = self.days  # Populate days here
+        self.dayEntry['values'] = self.days
         self.dayEntry.grid(row=0, column=1, padx=10, pady=10, sticky=W)
 
         self.load_button = Button(self.input_frame, text="Load", command=self.load_schedule)
         self.load_button.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
 
-        # Create a Canvas widget and a Frame for the table
         self.canvas = Canvas(self.master, bg='lightblue')
         self.canvas.grid(row=2, column=0, columnspan=2, sticky="nsew")
 
-        # Create a horizontal scrollbar linked to the Canvas
         self.scroll_x = Scrollbar(self.master, orient="horizontal", command=self.canvas.xview)
         self.scroll_x.grid(row=3, column=0, columnspan=2, sticky="ew")
 
-        # Create a Frame inside the Canvas to hold the table
         self.table_frame = Frame(self.canvas, bg='lightblue')
-
-        # Add the Frame to the Canvas
         self.canvas.create_window((0, 0), window=self.table_frame, anchor="nw")
-
-        # Update the Canvas scrollregion
         self.table_frame.bind("<Configure>", self.on_frame_configure)
 
-        # Configure row and column weights
         self.master.grid_rowconfigure(2, weight=1)
         self.master.grid_columnconfigure(0, weight=1)
         self.master.grid_columnconfigure(1, weight=1)
 
     def on_frame_configure(self, event):
-        # Update the scrollregion of the Canvas
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def display_schedule(self, schedule_data, locations):
@@ -71,46 +62,55 @@ class LocationTable:
         titleLabel = Label(self.table_frame, text=title, font=('Arial', 14, 'bold'), bg='lightblue')
         titleLabel.grid(row=0, column=0, columnspan=len(self.time_slots) + 2, pady=10)
 
-        # Headers
         Label(self.table_frame, text="Location/Time", bg='lightblue', font=('Arial', 10, 'bold'), borderwidth=1, relief="solid", width=15, height=3).grid(row=1, column=0, sticky="nsew")
         for col, time_slot in enumerate(self.time_slots):
             Label(self.table_frame, text=time_slot, bg='lightblue', font=('Arial', 10, 'bold'), borderwidth=1, relief="solid", width=12, height=3).grid(row=1, column=col+1, sticky="nsew")
 
-        # Organize schedule data by location
         location_to_schedule = {loc: {i: '' for i in range(len(self.time_slots))} for loc in locations}
 
-        for loc_name, time_start, sub_name, level_id, section_id in schedule_data:
+        for doc_name, day, time_start, loc_name in schedule_data:
+            if day != self.day.get():
+                continue
+
             normalized_time_start = self.normalize_time_format(time_start)
-            
             if normalized_time_start in self.time_slots:
                 start_index = self.time_slots.index(normalized_time_start)
                 end_index = start_index + 4  # 4 periods for a 2-hour session
 
                 for col in range(start_index, min(end_index, len(self.time_slots))):
-                    location_to_schedule[loc_name][col] = f"{sub_name} (Level: {level_id}, Section: {section_id})"
+                    location_to_schedule[loc_name][col] = doc_name
 
-        # Create rows for each location
         for row_index, loc_name in enumerate(locations, start=2):
             loc_label = Label(self.table_frame, text=loc_name, bg='lightblue', font=('Arial', 10, 'bold'), borderwidth=1, relief="solid", width=15, height=3)
             loc_label.grid(row=row_index, column=0, sticky="nsew")
 
-            for col in range(len(self.time_slots)):
-                cell = Label(self.table_frame, text=location_to_schedule[loc_name][col], bg='lightblue', font=('Arial', 10), borderwidth=1, relief="solid", width=12, height=3)
-                cell.grid(row=row_index, column=col+1, sticky="nsew")
+            col = 1
+            while col <= len(self.time_slots):
+                current_doc = location_to_schedule[loc_name][col-1]
+                merged_col_span = 1
+                while (col + merged_col_span <= len(self.time_slots) and
+                       location_to_schedule[loc_name][col + merged_col_span - 1] == current_doc):
+                    merged_col_span += 1
 
-        # Adjust column and row configuration
+                if current_doc:
+                    cell = Label(self.table_frame, text=current_doc, bg='white', font=('Arial', 10), borderwidth=1, relief="solid", width=12, height=3)
+                    cell.grid(row=row_index, column=col, columnspan=merged_col_span, sticky="nsew")
+
+                col += merged_col_span
+
         for col in range(len(self.time_slots) + 1):
             self.table_frame.columnconfigure(col, weight=1)
         for row in range(len(locations) + 2):
             self.table_frame.rowconfigure(row, weight=1)
 
-        # Update Canvas scrollregion
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def normalize_time_format(self, time_str):
-        if len(time_str) == 1:  # Handle cases like '9' by converting to '9:00 - 9:30'
-            time_str = f"{time_str}:00 - {str(int(time_str) + 2)}:00"
-        return time_str
+        try:
+            hour = int(time_str.split(":")[0])
+            return f"{hour}:00 - {hour}:30"
+        except ValueError:
+            return time_str
 
     def load_schedule(self):
         day = self.day.get()
@@ -127,16 +127,14 @@ class LocationTable:
             if connection.is_connected():
                 cursor = connection.cursor()
                 
-                # Get schedule data for the selected day with additional info
                 query_schedule = """
-                SELECT s.loc_name, s.time_start, s.sub_name, s.level_ID, s.sections
+                SELECT s.doc_name, s.Day, s.time_start, s.loc_name
                 FROM schedule s
                 WHERE s.Day = %s
                 """
                 cursor.execute(query_schedule, (day,))
                 schedule_data = cursor.fetchall()
 
-                # Get all locations from the Location table
                 query_locations = "SELECT Name FROM Location"
                 cursor.execute(query_locations)
                 locations = [loc[0] for loc in cursor.fetchall()]

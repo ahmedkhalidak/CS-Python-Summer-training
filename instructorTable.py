@@ -7,7 +7,7 @@ class InstructorTable:
     def __init__(self, master):
         self.master = master
         self.master.title('Instructor Schedule')
-        self.master.geometry('1000x600')  # زيادة العرض إلى حجم أكبر
+        self.master.geometry('1000x600')
         self.master.configure(bg='lightblue')
 
         self.instructor_dict = {}
@@ -15,9 +15,6 @@ class InstructorTable:
         self.load_data()
 
     def setup_widgets(self):
-        label_style = {'bg': 'lightblue', 'fg': 'black', 'font': ('Arial', 12, 'bold')}
-        entry_style = {'font': ('Arial', 12)}
-
         self.roleLabel = Label(self.master, text="Role:", bg='lightblue', font=('Arial', 12, 'bold'))
         self.roleLabel.grid(row=0, column=0, padx=10, pady=10, sticky=W)
         self.roleVar = StringVar()
@@ -33,30 +30,21 @@ class InstructorTable:
         self.instructortidEntry.grid(row=1, column=1, padx=10, pady=10, sticky=W)
         self.instructortidEntry.bind("<<ComboboxSelected>>", self.fetch_schedule)
 
-        # Create a Canvas widget and a Frame for the table
         self.canvas = Canvas(self.master, bg='lightblue')
         self.canvas.grid(row=2, column=0, columnspan=2, sticky="nsew")
 
-        # Create a horizontal scrollbar linked to the Canvas
         self.scroll_x = Scrollbar(self.master, orient="horizontal", command=self.canvas.xview)
         self.scroll_x.grid(row=3, column=0, columnspan=2, sticky="ew")
 
-        # Create a Frame inside the Canvas to hold the table
         self.table_frame = Frame(self.canvas, bg='lightblue')
-
-        # Add the Frame to the Canvas
         self.canvas.create_window((0, 0), window=self.table_frame, anchor="nw")
-
-        # Update the Canvas scrollregion
         self.table_frame.bind("<Configure>", self.on_frame_configure)
 
-        # Configure row and column weights
         self.master.grid_rowconfigure(2, weight=1)
         self.master.grid_columnconfigure(0, weight=1)
         self.master.grid_columnconfigure(1, weight=1)
 
     def on_frame_configure(self, event):
-        # Update the scrollregion of the Canvas
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def fetch_instructors(self, event):
@@ -99,11 +87,11 @@ class InstructorTable:
             )
             cursor = db.cursor()
             sql = """
-            SELECT Day, time_start, sub_name
+            SELECT doc_name, Day, time_start, sub_name
             FROM schedule
-            WHERE instructor_ID = %s
+            WHERE doc_name = %s
             """
-            cursor.execute(sql, (instructor_id,))
+            cursor.execute(sql, (instructor_name,))
             rows = cursor.fetchall()
             db.close()
 
@@ -125,11 +113,11 @@ class InstructorTable:
         current_row = 2
         schedule_dict = {day: {time_slot: "" for time_slot in self.time_slots} for day in self.days}
 
-        for day, time_start, sub_name in schedule_data:
+        for doc_name, day, time_start, sub_name in schedule_data:
             if day not in schedule_dict:
                 continue
-            start_index = self.time_slots.index(time_start)
-            end_index = start_index + 4  # 4 periods for a 2-hour session
+            start_index = self.time_slots.index(f"{time_start}:00 - {time_start}:30")
+            end_index = start_index + 4
 
             for col in range(start_index, min(end_index, len(self.time_slots))):
                 schedule_dict[day][self.time_slots[col]] = sub_name
@@ -138,11 +126,21 @@ class InstructorTable:
             day_label = Label(self.table_frame, text=day, bg='lightblue', font=('Arial', 12, 'bold'), borderwidth=1, relief="solid", width=15, height=3)
             day_label.grid(row=current_row, column=0, rowspan=1, sticky="nsew")
 
-            for col, time_slot in enumerate(self.time_slots):
+            col = 2
+            while col < len(self.time_slots) + 2:
+                time_slot = self.time_slots[col - 2]
                 subject = slots.get(time_slot, "")
-                entry = Entry(self.table_frame, width=20, borderwidth=1, relief="solid", font=('Arial', 12))
-                entry.grid(row=current_row, column=col+2, sticky="nsew")
-                entry.insert(0, subject)
+
+                if subject:
+                    span = 1
+                    while col + span < len(self.time_slots) + 2 and slots.get(self.time_slots[col - 2 + span], "") == subject:
+                        span += 1
+
+                    label = Label(self.table_frame, text=subject, font=('Arial', 12), borderwidth=1, relief="solid", width=20 * span, height=3)
+                    label.grid(row=current_row, column=col, columnspan=span, sticky="nsew")
+                    col += span
+                else:
+                    col += 1
 
             current_row += 1
 
