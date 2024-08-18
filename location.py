@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import messagebox, ttk
 import mysql.connector
+
 class LocationPageADD:
     def __init__(self, master):
         self.master = master
@@ -58,8 +59,6 @@ class LocationPageADD:
         self.deleteButton = Button(self.master, text="Delete Record", bg='red', fg='white', font=('Arial', 12, 'bold'), command=self.delete_record)
         self.deleteButton.grid(row=7, column=0, columnspan=2, pady=10)
 
-        self.load_data()
-
     def insert_to_db(self):
         Type = self.typeListbox.get(ACTIVE)
         Capacity = self.capacity.get()
@@ -81,7 +80,6 @@ class LocationPageADD:
                 db.commit()
                 messagebox.showinfo("Registration Success", "Location registered successfully.")
                 db.close()
-                self.load_data()
             except mysql.connector.Error as err:
                 messagebox.showerror("Database Error", f"Error: {err}")
         else:
@@ -108,20 +106,33 @@ class LocationPageADD:
             self.tree.insert("", END, values=row)
 
     def delete_record(self):
-        selected_item = self.tree.selection()[0]
-        values = self.tree.item(selected_item, 'values')
-        record_id = values[0]
-        db = mysql.connector.connect(
-            host="localhost",
-            user='root',
-            password='',
-            database="PDataBasev8"
-        )
-        cursor = db.cursor()
-        cursor.execute("DELETE FROM location WHERE ID = %s", (record_id,))
-        db.commit()
-        db.close()
-        self.load_data()  
+        selected_item = self.tree.selection()
+        if selected_item:
+            values = self.tree.item(selected_item, 'values')
+            record_id = values[0]
+            db = mysql.connector.connect(
+                host="localhost",
+                user='root',
+                password='',
+                database="PDataBasev8"
+            )
+            cursor = db.cursor()
+
+            try:
+                # First, delete dependent records in the schedule table
+                cursor.execute("DELETE FROM schedule WHERE Location_ID = %s", (record_id,))
+
+                # Now, delete the record in the location table
+                cursor.execute("DELETE FROM location WHERE ID = %s", (record_id,))
+
+                db.commit()
+                messagebox.showinfo("Success", "Record deleted successfully.")
+            except mysql.connector.Error as err:
+                messagebox.showerror("Database Error", f"Error: {err}")
+            finally:
+                db.close()
+        else:
+            messagebox.showwarning("Selection Error", "Please select a record to delete.")
 
 if __name__ == "__main__":
     root = Tk()

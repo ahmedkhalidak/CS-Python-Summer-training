@@ -66,35 +66,36 @@ class LocationTable:
         for col, time_slot in enumerate(self.time_slots):
             Label(self.table_frame, text=time_slot, bg='lightblue', font=('Arial', 10, 'bold'), borderwidth=1, relief="solid", width=12, height=3).grid(row=1, column=col+1, sticky="nsew")
 
-        location_to_schedule = {loc: {i: '' for i in range(len(self.time_slots))} for loc in locations}
+        location_to_schedule = {loc_id: {i: '' for i in range(len(self.time_slots))} for loc_id in locations.keys()}
 
-        for doc_name, day, time_start, loc_name in schedule_data:
+        for day, time_start, loc_id in schedule_data:
             if day != self.day.get():
                 continue
 
             normalized_time_start = self.normalize_time_format(time_start)
             if normalized_time_start in self.time_slots:
                 start_index = self.time_slots.index(normalized_time_start)
-                end_index = start_index + 4  # 4 periods for a 2-hour session
+                end_index = start_index + 4
 
                 for col in range(start_index, min(end_index, len(self.time_slots))):
-                    location_to_schedule[loc_name][col] = doc_name
+                    location_to_schedule[loc_id][col] = 'Not Available'
 
-        for row_index, loc_name in enumerate(locations, start=2):
+        for row_index, loc_id in enumerate(locations.keys(), start=2):
+            loc_name = locations[loc_id]
             loc_label = Label(self.table_frame, text=loc_name, bg='lightblue', font=('Arial', 10, 'bold'), borderwidth=1, relief="solid", width=15, height=3)
             loc_label.grid(row=row_index, column=0, sticky="nsew")
 
             col = 1
             while col <= len(self.time_slots):
-                current_doc = location_to_schedule[loc_name][col-1]
+                current_status = location_to_schedule[loc_id][col-1]
                 merged_col_span = 1
                 while (col + merged_col_span <= len(self.time_slots) and
-                       location_to_schedule[loc_name][col + merged_col_span - 1] == current_doc):
+                       location_to_schedule[loc_id][col + merged_col_span - 1] == current_status):
                     merged_col_span += 1
 
-                if current_doc:
-                    cell = Label(self.table_frame, text=current_doc, bg='white', font=('Arial', 10), borderwidth=1, relief="solid", width=12, height=3)
-                    cell.grid(row=row_index, column=col, columnspan=merged_col_span, sticky="nsew")
+                bg_color = 'red' if current_status == 'Not Available' else 'white'
+                cell = Label(self.table_frame, text=current_status, bg=bg_color, font=('Arial', 10), borderwidth=1, relief="solid", width=12, height=3)
+                cell.grid(row=row_index, column=col, columnspan=merged_col_span, sticky="nsew")
 
                 col += merged_col_span
 
@@ -106,10 +107,10 @@ class LocationTable:
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def normalize_time_format(self, time_str):
-        try:
-            hour = int(time_str.split(":")[0])
-            return f"{hour}:00 - {hour}:30"
-        except ValueError:
+        if time_str in self.time_slots:
+            return time_str
+        else:
+           
             return time_str
 
     def load_schedule(self):
@@ -122,22 +123,23 @@ class LocationTable:
                 host='localhost',
                 database='PDataBasev8',
                 user='root',
-                password=''  # Replace with your MySQL password
+                password=''  
             )
             if connection.is_connected():
                 cursor = connection.cursor()
                 
                 query_schedule = """
-                SELECT s.doc_name, s.Day, s.time_start, s.loc_name
+                SELECT s.Day, s.time_start, l.ID 
                 FROM schedule s
+                JOIN location l ON s.Location_ID = l.ID
                 WHERE s.Day = %s
                 """
                 cursor.execute(query_schedule, (day,))
                 schedule_data = cursor.fetchall()
 
-                query_locations = "SELECT Name FROM Location"
+                query_locations = "SELECT ID, Name FROM Location"
                 cursor.execute(query_locations)
-                locations = [loc[0] for loc in cursor.fetchall()]
+                locations = {loc[0]: loc[1] for loc in cursor.fetchall()}
 
                 self.display_schedule(schedule_data, locations)
 

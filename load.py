@@ -150,7 +150,7 @@ class Load:
                 database="PDataBaseV8"
             )
             cursor = db.cursor()
-            id = self.level.get()
+            id = self.levels_dic[self.level.get()][0]
             cursor.execute("SELECT ID, Name FROM subject WHERE level_ID = %s", (id,))
             rows = cursor.fetchall()
             self.subject_dict = {Name: ID for ID, Name in rows}

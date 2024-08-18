@@ -43,7 +43,7 @@ class Level:
         self.tree.grid(row=8, column=0, columnspan=2, pady=20)
 
         self.deleteButton = Button(self.root, text="Delete Record", bg='red', fg='white', font=('Arial', 12, 'bold'), command=self.delete_record)
-        self.deleteButton.grid(row=7, column=0, columnspan=2, pady=10)
+        self.deleteButton.grid(row=10, column=0, columnspan=2, pady=10)
 
     def fetch_departments(self):
         try:
@@ -62,17 +62,58 @@ class Level:
             messagebox.showerror("Database Error", f"Error: {err}")
             return []
 
+    def find_next_available_id(self):
+        try:
+            db = mysql.connector.connect(
+                host="localhost",
+                user='root',
+                password='',
+                database="PDataBaseV8"
+            )
+            cursor = db.cursor()
+            cursor.execute("SELECT ID FROM level ORDER BY ID")
+            ids = [row[0] for row in cursor.fetchall()]
+            db.close()
+
+            next_id = 1
+            for id in ids:
+                if next_id < id:
+                    break
+                next_id = id + 1
+            return next_id
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
+            return 1
+
+    def department_exists(self, department_name, level_no):
+        try:
+            db = mysql.connector.connect(
+                host="localhost",
+                user='root',
+                password='',
+                database="PDataBaseV8"
+            )
+            cursor = db.cursor()
+            cursor.execute("SELECT COUNT(*) FROM level WHERE Dept_ID = %s AND levelNo = %s", (self.department_dict.get(department_name), level_no))
+            count = cursor.fetchone()[0]
+            db.close()
+            return count > 0
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
+            return False
+
     def insert_to_db(self):
         department_name = self.departmentidVar.get()
-        if department_name:
-            dept_id = self.department_dict[department_name]
-        else:
-            dept_id = None
-
         levelNo = self.levelVar.get()
         No_sections = self.sectionsVar.get()
 
-        if dept_id and levelNo and No_sections:
+        if department_name and levelNo and No_sections:
+            if self.department_exists(department_name, levelNo):
+                messagebox.showwarning("Duplicate Error", "This department and level combination already exists.")
+                return
+
+            dept_id = self.department_dict.get(department_name)
+
             try:
                 db = mysql.connector.connect(
                     host="localhost",
@@ -81,10 +122,13 @@ class Level:
                     database="PDataBaseV8"
                 )
                 cursor = db.cursor()
-                sql = "INSERT INTO level (Dept_ID, levelNo, No_sections) VALUES (%s, %s, %s)"
-                cursor.execute(sql, (dept_id, levelNo, No_sections))
+
+                next_id = self.find_next_available_id()
+
+                sql = "INSERT INTO level (Dept_ID, levelNo, No_sections, ID) VALUES (%s, %s, %s, %s)"
+                cursor.execute(sql, (dept_id, levelNo, No_sections, next_id))
                 db.commit()
-                messagebox.showinfo("Success", "Record inserted successfully.")
+                messagebox.showinfo("Success", f"Record inserted successfully with ID {next_id}.")
                 db.close()
                 self.load_data()
             except mysql.connector.Error as err:
@@ -133,7 +177,7 @@ class Level:
                 database="PDataBaseV8"
             )
             cursor = db.cursor()
-            cursor.execute("DELETE FROM level WHERE id = %s", (record_id,))
+            cursor.execute("DELETE FROM level WHERE ID = %s", (record_id,))
             db.commit()
             db.close()
             self.load_data()
