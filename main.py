@@ -25,11 +25,11 @@ class MainPage:
         self.sidebar_frame = Frame(self.master, bg='#5E95FF', width=250)
         self.sidebar_frame.pack(side=LEFT, fill=Y)
 
-        #   
+          
         self.content_frame = Frame(self.master, bg='#FFFFFF')
         self.content_frame.pack(side=LEFT, fill=BOTH, expand=True)
 
-        #
+        
         button_style = {'bg': '#5E95FF', 'fg': 'white', 'font': ('Montserrat', 12, 'bold'), 'width': 25, 'relief': FLAT}
 
         self.department = Button(self.sidebar_frame, text="Department", **button_style, command=self.show_department)
