@@ -3,46 +3,44 @@ from tkinter import messagebox, ttk
 import mysql.connector
 
 class Level:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Level")
-        self.root.geometry('500x500')
-        self.root.configure(bg='lightblue')
+    def __init__(self, frame):
+        self.frame = frame
+        self.frame.configure(bg='lightblue')
 
         self.departments = self.fetch_departments()
         self.department_dict = {name: dept_id for dept_id, name in self.departments}
 
-        self.departmentidLabel = Label(root, text="Department:", bg='lightblue', font=('Arial', 12, 'bold'))
+        self.departmentidLabel = Label(frame, text="Department:", bg='lightblue', font=('Arial', 12, 'bold'))
         self.departmentidLabel.grid(row=0, column=0)
         self.departmentidVar = StringVar()
-        self.departmentidEntry = ttk.Combobox(root, textvariable=self.departmentidVar)
+        self.departmentidEntry = ttk.Combobox(frame, textvariable=self.departmentidVar)
         self.departmentidEntry['values'] = [name for name in self.department_dict.keys()]
         self.departmentidEntry.grid(row=0, column=1, padx=10, pady=10)
 
-        self.levelLabel = Label(root, text="Level:", bg='lightblue', font=('Arial', 12, 'bold'))
+        self.levelLabel = Label(frame, text="Level:", bg='lightblue', font=('Arial', 12, 'bold'))
         self.levelLabel.grid(row=1, column=0)
         self.levelVar = IntVar()
-        self.levelEntry = ttk.Combobox(root, textvariable=self.levelVar, values=[1, 2, 3, 4])
+        self.levelEntry = ttk.Combobox(frame, textvariable=self.levelVar, values=[1, 2, 3, 4])
         self.levelEntry.grid(row=1, column=1, padx=10, pady=10)
 
-        self.sectionsLabel = Label(root, text="Number of Sections:", bg='lightblue', font=('Arial', 12, 'bold'))
+        self.sectionsLabel = Label(frame, text="Number of Sections:", bg='lightblue', font=('Arial', 12, 'bold'))
         self.sectionsLabel.grid(row=2, column=0)
         self.sectionsVar = IntVar()
-        self.sectionsEntry = Entry(root, textvariable=self.sectionsVar)
+        self.sectionsEntry = Entry(frame, textvariable=self.sectionsVar)
         self.sectionsEntry.grid(row=2, column=1, padx=10, pady=10)
 
-        self.submitButton = Button(self.root, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.insert_to_db)
+        self.submitButton = Button(frame, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.insert_to_db)
         self.submitButton.grid(row=3, column=0, columnspan=2, pady=20)
 
-        self.loadButton = Button(self.root, text="Load Data", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.load_data)
+        self.loadButton = Button(frame, text="Load Data", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.load_data)
         self.loadButton.grid(row=4, column=0, columnspan=2, pady=10)
 
-        self.tree = ttk.Treeview(self.root, columns=('id', 'department', 'level', 'sections'), show='headings')
+        self.tree = ttk.Treeview(frame, columns=('id', 'department', 'level', 'sections'), show='headings')
         for col in ('id', 'department', 'level', 'sections'):
             self.tree.heading(col, text=col)
         self.tree.grid(row=8, column=0, columnspan=2, pady=20)
 
-        self.deleteButton = Button(self.root, text="Delete Record", bg='red', fg='white', font=('Arial', 12, 'bold'), command=self.delete_record)
+        self.deleteButton = Button(frame, text="Delete Record", bg='red', fg='white', font=('Arial', 12, 'bold'), command=self.delete_record)
         self.deleteButton.grid(row=10, column=0, columnspan=2, pady=10)
 
     def fetch_departments(self):

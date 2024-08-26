@@ -4,10 +4,8 @@ import mysql.connector
 
 class Load:
     def __init__(self, root):
-        self.root = root
-        self.root.title("Load Management")
-        self.root.geometry('600x600')
-        self.root.configure(bg='lightblue')
+        self.frame = root
+        self.frame.configure(bg='lightblue')
 
         # Fetch data from instructor table
         self.instructor_dict = {}
@@ -98,10 +96,29 @@ class Load:
             self.instructor_dict = {name: instructor_id for instructor_id, name in rows}
             self.instructortidEntry['values'] = [name for name in self.instructor_dict.keys()]
             db.close()
-            return rows
+            print(f"Instructor Dictionary: {self.instructor_dict}")  # Debug print
         except mysql.connector.Error as err:
             messagebox.showerror("Database Error", f"Error: {err}")
-            return []
+
+    def fetch_subjects(self, event):
+        self.subject_dict.clear()
+        try:
+            db = mysql.connector.connect(
+                host="localhost",
+                user='root',
+                password='',
+                database="PDataBaseV8"
+            )
+            cursor = db.cursor()
+            id = self.levels_dic[self.level.get()][0]
+            cursor.execute("SELECT ID, Name FROM subject WHERE level_ID = %s", (id,))
+            rows = cursor.fetchall()
+            self.subject_dict = {Name: ID for ID, Name in rows}
+            self.subjectEntry['values'] = [Name for Name in self.subject_dict.keys()]
+            db.close()
+            print(f"Subject Dictionary: {self.subject_dict}")  # Debug print
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
 
     def fetch_departments(self):
         try:
@@ -225,9 +242,27 @@ class Load:
             messagebox.showerror("Database Error", f"Error: {err}")
 
     def delete_from_db(self):
-        selected_item = self.tree.selection()[0]
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Selection Error", "Please select a record to delete.")
+            return
+
+        selected_item = selected_item[0]
         instructor_name = self.tree.item(selected_item, 'values')[0]
         subject_name = self.tree.item(selected_item, 'values')[1]
+
+        print(f"Selected Instructor: {instructor_name}")
+        print(f"Selected Subject: {subject_name}")
+
+        # Check if instructor_name is in the instructor_dict
+        if instructor_name not in self.instructor_dict:
+            messagebox.showerror("Data Error", f"Instructor '{instructor_name}' not found in dictionary.")
+            return
+
+        # Check if subject_name is in the subject_dict
+        if subject_name not in self.subject_dict:
+            messagebox.showerror("Data Error", f"Subject '{subject_name}' not found in dictionary.")
+            return
 
         instr_id = self.instructor_dict[instructor_name]
         subj_id = self.subject_dict[subject_name]
@@ -248,6 +283,7 @@ class Load:
             messagebox.showinfo("Success", "Record deleted successfully.")
         except mysql.connector.Error as err:
             messagebox.showerror("Database Error", f"Error: {err}")
+
 
 if __name__ == "__main__":
     root = Tk()

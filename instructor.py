@@ -5,10 +5,8 @@ from mysql.connector import Error
 
 class Instructor:
     def __init__(self, master):
-        self.master = master
-        self.master.title('Instructor')
-        self.master.geometry('600x500')
-        self.master.configure(bg='lightblue')
+        self.frame = Frame(master, bg='lightblue', width=600, height=600)
+        self.frame.pack(fill=BOTH, expand=True)
         
         self.setup_widgets()
         self.load_data()
@@ -18,30 +16,30 @@ class Instructor:
         entry_style = {'font': ('Arial', 12)}
 
         # Name Entry
-        Label(self.master, text="Name", **label_style).grid(row=0, column=0, padx=10, pady=10)
+        Label(self.frame, text="Name", **label_style).grid(row=0, column=0, padx=10, pady=10)
         self.name = StringVar()
-        Entry(self.master, textvariable=self.name, **entry_style).grid(row=0, column=1, padx=10, pady=10)
+        Entry(self.frame, textvariable=self.name, **entry_style).grid(row=0, column=1, padx=10, pady=10)
 
         # Position Radiobuttons
         self.position = StringVar()
         self.position.set("Dr")
-        Radiobutton(self.master, text='Dr', variable=self.position, value="Dr", bg='lightblue', font=('Arial', 12)).grid(row=1, column=0, padx=10, pady=10)
-        Radiobutton(self.master, text='TA', variable=self.position, value="TA", bg='lightblue', font=('Arial', 12)).grid(row=1, column=1, padx=10, pady=10)
+        Radiobutton(self.frame, text='Dr', variable=self.position, value="Dr", bg='lightblue', font=('Arial', 12)).grid(row=1, column=0, padx=10, pady=10)
+        Radiobutton(self.frame, text='TA', variable=self.position, value="TA", bg='lightblue', font=('Arial', 12)).grid(row=1, column=1, padx=10, pady=10)
 
         # Submit Button
-        Button(self.master, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.insert_to_db).grid(row=3, column=0, columnspan=2, pady=20)
+        Button(self.frame, text="Submit", bg='lightgreen', fg='black', font=('Arial', 12, 'bold'), command=self.insert_to_db).grid(row=3, column=0, columnspan=2, pady=20)
 
         # Load Data Button
-        Button(self.master, text="Load Data", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.load_data).grid(row=4, column=0, columnspan=2, pady=10)
+        Button(self.frame, text="Load Data", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.load_data).grid(row=4, column=0, columnspan=2, pady=10)
 
         # Treeview for Displaying Data
-        self.tree = ttk.Treeview(self.master, columns=('Id', 'Name', 'Role'), show='headings')
+        self.tree = ttk.Treeview(self.frame, columns=('Id', 'Name', 'Role'), show='headings')
         for col in self.tree['columns']:
             self.tree.heading(col, text=col)
         self.tree.grid(row=5, column=0, columnspan=2, pady=20)
 
         # Delete Button
-        Button(self.master, text="Delete Record", bg='red', fg='white', font=('Arial', 12, 'bold'), command=self.delete_record).grid(row=6, column=0, columnspan=2, pady=10)
+        Button(self.frame, text="Delete Record", bg='red', fg='white', font=('Arial', 12, 'bold'), command=self.delete_record).grid(row=6, column=0, columnspan=2, pady=10)
 
     def connect_db(self):
         try:

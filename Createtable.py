@@ -9,9 +9,9 @@ from locationData import Location
 from delete import Delete
 class CreateTable:
     def __init__(self, root):
-        self.root = root
-        self.root.title("Create Table")
-        self.root.geometry('1600x1400')
+        self.root = root  # Assign the root window to self.root
+        self.frame = Frame(root, bg='#FFFFFF', width=600, height=600)
+        self.frame.pack(fill=BOTH, expand=True)
         self.levels_dic = {}
         self.days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]
         self.time_slots = [
@@ -29,7 +29,7 @@ class CreateTable:
         self.departments = self.fetch_departments()
         self.department_dict = {name: dept_id for dept_id, name in self.departments}
 
-        self.input_frame = Frame(self.root)
+        self.input_frame = Frame(self.frame)
         self.input_frame.grid(row=0, column=1, padx=20, pady=20, sticky="ne")
 
         self.departmentLabel = Label(self.input_frame, text="Department:", **label_style)
@@ -117,9 +117,7 @@ class CreateTable:
         self.deletPageButton = Button(self.input_frame, text="Delet Page", bg='lightblue', fg='black', font=('Arial', 12, 'bold'), command=self.Delete_page)
         self.deletPageButton.grid(row=13, column=1, pady=10)
 
-
-
-        self.table_frame_outer = Frame(self.root)
+        self.table_frame_outer = Frame(self.frame)
         self.table_frame_outer.grid(row=0, column=0, sticky="nsew")
 
         self.table_canvas = Canvas(self.table_frame_outer)
@@ -137,9 +135,9 @@ class CreateTable:
 
         self.table_frame.bind("<Configure>", lambda e: self.table_canvas.configure(scrollregion=self.table_canvas.bbox("all")))
 
-        self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_columnconfigure(0, weight=4)
-        self.root.grid_columnconfigure(1, weight=1)    
+        self.frame.grid_rowconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(0, weight=4)
+        self.frame.grid_columnconfigure(1, weight=1)    
 
     def locationEmpty(self, event):
         day = self.day.get()
@@ -315,8 +313,7 @@ class CreateTable:
     def create_table(self, event=None):
         
         for widget in self.table_frame.winfo_children():
-            if isinstance(widget, Entry):
-                widget.destroy()
+            widget.destroy()
 
         level = self.level.get()
         department = self.department.get()
@@ -398,7 +395,7 @@ class CreateTable:
                 sections_from = int(sectionsList[0])
                 sections_to = int(sectionsList[-1])
 
-                # رسم الجدول بالبيانات
+               
                 self.draw(time_start, Day, self.subjectsData[subject_ID].name, subject_type, instructor, self.locationsData[Location_ID].name, sections_from, sections_to)
 
                 # تحديث حالة الحجز للموقع والمدرس

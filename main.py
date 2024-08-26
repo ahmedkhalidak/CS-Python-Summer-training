@@ -1,4 +1,5 @@
 from tkinter import *
+from pathlib import Path
 from department import department
 from level import Level
 from instructor import Instructor
@@ -7,64 +8,84 @@ from load import Load
 from Createtable import CreateTable
 from location import LocationPageADD
 
+OUTPUT_PATH = Path(__file__).parent
+ASSETS_PATH = OUTPUT_PATH / Path("./assetsmain")
+
+def relative_to_assets(path: str) -> Path:
+    return ASSETS_PATH / Path(path)
+
 class MainPage:
     def __init__(self, master):
         self.master = master
         self.master.title('Main Page')
-        self.master.geometry('400x200')
-        self.master.configure(bg='lightblue')
-        
-        button_style = {'bg': 'lightblue', 'fg': 'black', 'font': ('Arial', 12, 'bold')}
+        self.master.geometry('1000x700')  
+        self.master.configure(bg='#FFFFFF')   
 
-        self.department= Button(self.master, text="Department", **button_style, command=self.open_DepaetmentPage)
-        self.department.grid(row=0, column=0, pady=10)
-        
-        self.level = Button(self.master, text="level", **button_style, command=self.open_level)
-        self.level.grid(row=0, column=1, pady=10)
+        #    
+        self.sidebar_frame = Frame(self.master, bg='#5E95FF', width=250)
+        self.sidebar_frame.pack(side=LEFT, fill=Y)
 
-        self.instructor = Button(self.master, text="instructor", **button_style, command=self.open_Instructor)
-        self.instructor.grid(row=1, column=0, pady=10)
+        #   
+        self.content_frame = Frame(self.master, bg='#FFFFFF')
+        self.content_frame.pack(side=LEFT, fill=BOTH, expand=True)
 
-        self.subject = Button(self.master, text="subject", **button_style, command=self.open_subject)
-        self.subject.grid(row=1, column=1, pady=10)
+        #
+        button_style = {'bg': '#5E95FF', 'fg': 'white', 'font': ('Montserrat', 12, 'bold'), 'width': 25, 'relief': FLAT}
 
-        self.location = Button(self.master, text="location", **button_style, command=self.open_location)
-        self.location.grid(row=2, column=0, pady=10)        
+        self.department = Button(self.sidebar_frame, text="Department", **button_style, command=self.show_department)
+        self.department.pack(pady=10)
 
-        self.load = Button(self.master, text="load", **button_style, command=self.open_load)
-        self.load.grid(row=2, column=1, pady=10)
+        self.level = Button(self.sidebar_frame, text="Level", **button_style, command=self.show_level)
+        self.level.pack(pady=10)
 
-        self.Createtable = Button(self.master, text="Createtable", **button_style, command=self.open_Createtable)
-        self.Createtable.grid(row=3, column=0, pady=10)
+        self.instructor = Button(self.sidebar_frame, text="Instructor", **button_style, command=self.show_instructor)
+        self.instructor.pack(pady=10)
 
-        self.Exit = Button(self.master, text="Exit", **button_style, command=self.close_window)
-        self.Exit.grid(row=3, column=1, pady=10)
-    
-    def open_DepaetmentPage(self):
-        self.new_window(department)
+        self.subject = Button(self.sidebar_frame, text="Subject", **button_style, command=self.show_subject)
+        self.subject.pack(pady=10)
 
-    def open_Instructor(self):
-        self.new_window(Instructor)
-        
-    def open_location(self):
-        self.new_window(LocationPageADD)
-        
-    def open_subject(self):
-        self.new_window(Subject)
+        self.location = Button(self.sidebar_frame, text="Location", **button_style, command=self.show_location)
+        self.location.pack(pady=10)        
 
-    def open_level(self):
-        self.new_window(Level)
+        self.load = Button(self.sidebar_frame, text="Load", **button_style, command=self.show_load)
+        self.load.pack(pady=10)
 
-    def open_load(self):
-        self.new_window(Load)
+        self.create_table = Button(self.sidebar_frame, text="Create Table", **button_style, command=self.show_create_table)
+        self.create_table.pack(pady=10)
 
-    def open_Createtable(self):
-        self.new_window(CreateTable)    
+        self.exit = Button(self.sidebar_frame, text="Exit", **button_style, command=self.close_window)
+        self.exit.pack(pady=10)
+        self.show_welcome()
 
-    def new_window(self, _class):
-        new = Toplevel(self.master)
-        _class(new)
-        
+    def show_department(self):
+        self.update_content(department)
+
+    def show_level(self):
+        self.update_content(Level)
+
+    def show_instructor(self):
+        self.update_content(Instructor)
+
+    def show_subject(self):
+        self.update_content(Subject)
+
+    def show_location(self):
+        self.update_content(LocationPageADD)
+
+    def show_load(self):
+        self.update_content(Load)
+
+    def show_create_table(self):
+        self.update_content(CreateTable)
+
+    def update_content(self, page_class):
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
+        page_class(self.content_frame)
+
+    def show_welcome(self):
+        Label(self.content_frame, text="Welcome to the application.", bg='#FFFFFF', font=("Montserrat Medium", 17)).pack(pady=20)
+
     def close_window(self):
         self.master.destroy()
 
